@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/lib/pq"
@@ -11,8 +10,6 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	json.NewDecoder(r.Body).Decode(&user)
-
-	log.Println("User created with ID:", r.Body, user)
 
 	err := DB.QueryRow("INSERT INTO users(name, email) VALUES($1, $2) RETURNING id", user.Name, user.Email).Scan(&user.ID)
 
@@ -27,4 +24,23 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(user)
+}
+
+func GetUsers(w http.ResponseWriter, r *http.Request) {
+
+	rows, _ := DB.Query("SELECT *from users")
+
+	var users []User
+
+	for rows.Next() {
+
+	}
+
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			http.Error(w, pqErr, http.StatusConflict)
+			return
+		}
+	}
+
 }

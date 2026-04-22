@@ -28,19 +28,29 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 
-	rows, _ := DB.Query("SELECT *from users")
+	rows, err := DB.Query("SELECT *from users")
+
+	if err != nil {
+		WriteError(w, ErrDB)
+	}
 
 	var users []User
 
+	defer rows.Close()
+
 	for rows.Next() {
 
+		var u User
+
+		if err := rows.Scan(&u.ID, &u.Email, u.Name); err != nil {
+			WriteError(w, ErrInternal)
+		}
+
+		users = append(users, u)
+
 	}
 
-	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			http.Error(w, pqErr, http.StatusConflict)
-			return
-		}
-	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 
 }
